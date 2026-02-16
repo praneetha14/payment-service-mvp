@@ -6,7 +6,7 @@ A simple payment processing web application built with Spring Boot and vanilla J
 
 **Backend:**
 - Java 17
-- Spring Boot 4.0.2
+- Spring Boot 3.2.5
 - Spring Security (JWT authentication)
 - Spring Data JPA
 - MySQL Database

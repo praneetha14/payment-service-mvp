@@ -1,5 +1,6 @@
 package com.payment.service.controller;
 
+import com.payment.service.exception.InvalidInputException;
 import com.payment.service.utils.JwtUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,7 +19,7 @@ public class AuthController {
             @RequestParam String password) {
 
         if (!"admin".equals(username) || !"admin123".equals(password)) {
-            throw new RuntimeException("Invalid credentials");
+            throw new InvalidInputException("Invalid credentials");
         }
 
         String token = JwtUtils.generateToken(username);
