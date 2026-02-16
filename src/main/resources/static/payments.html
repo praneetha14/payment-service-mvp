@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payments</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>All Payments</h2>
+
+<button onclick="openPaymentForm()">Make Payment</button>
+<button onclick="logout()">Logout</button>
+
+<table border="1">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Amount</th>
+        <th>Status</th>
+    </tr>
+    </thead>
+    <tbody id="paymentsTable"></tbody>
+</table>
+
+<script src="script.js"></script>
+<script>
+    loadPayments();
+</script>
+</body>
+</html>

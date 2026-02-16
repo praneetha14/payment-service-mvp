@@ -1,5 +1,6 @@
 package com.payment.service;
 
+import com.payment.service.filters.JwtFilter;
 import com.payment.service.repository.PaymentServiceRepository;
 import com.payment.service.service.PaymentService;
 import com.payment.service.service.impl.PaymentServiceImpl;
@@ -9,6 +10,9 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 public class PaymentServiceAutoConfiguration {
@@ -28,5 +32,24 @@ public class PaymentServiceAutoConfiguration {
                 .externalDocs(new ExternalDocumentation()
                         .description("GitHub Repo")
                         .url("https://github.com/yourusername/payment-service-mvp"));
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http)
+            throws Exception {
+
+        http
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/**.html").permitAll()
+                        .requestMatchers("/style.css", "/script.js").permitAll()
+                        .requestMatchers("/favicon.ico").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(new JwtFilter(),
+                        UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 }
