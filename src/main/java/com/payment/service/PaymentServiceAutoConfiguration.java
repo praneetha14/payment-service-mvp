@@ -8,11 +8,15 @@ import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.util.List;
 
 @Configuration
 public class PaymentServiceAutoConfiguration {
@@ -24,7 +28,13 @@ public class PaymentServiceAutoConfiguration {
 
     @Bean
     public OpenAPI paymentServiceOpenAPI() {
+        SecurityScheme bearerAuthScheme = new SecurityScheme()
+                .type(SecurityScheme.Type.HTTP)
+                .scheme("bearer")
+                .bearerFormat("JWT");
         return new OpenAPI()
+                .addSecurityItem(new SecurityRequirement().addList("BearerAuth"))
+                .schemaRequirement("BearerAuth", bearerAuthScheme)
                 .info(new Info().title("Payment Processing MVP API")
                         .description("REST API for Payment Processing MVP Assignment")
                         .version("v1.0")
@@ -41,7 +51,7 @@ public class PaymentServiceAutoConfiguration {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/auth/**", "/swagger-ui/**", "/v3/**").permitAll()
                         .requestMatchers("/**.html").permitAll()
                         .requestMatchers("/style.css", "/script.js").permitAll()
                         .requestMatchers("/favicon.ico").permitAll()
