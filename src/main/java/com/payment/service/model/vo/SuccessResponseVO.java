@@ -19,7 +19,7 @@ public class SuccessResponseVO<T> {
         this.data = data;
     }
 
-    private static <T> SuccessResponseVO<T> of(String message,Long paymentId,
+    public static <T> SuccessResponseVO<T> of(String message,Long paymentId,
                                                T data){
         return new SuccessResponseVO<>(message, paymentId, data);
     }
