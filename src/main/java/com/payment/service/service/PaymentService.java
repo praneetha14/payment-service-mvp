@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface PaymentService {
     SuccessResponseVO<PaymentResponseVO> processPayment(PaymentRequestDTO paymentRequestDTO);
-    SuccessResponseVO<List<PaymentResponseVO>> getAllPayments();
+    SuccessResponseVO<List<PaymentResponseVO>> getAllPayments(int page, int limit);
 
 }

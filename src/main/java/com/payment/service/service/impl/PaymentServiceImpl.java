@@ -9,6 +9,8 @@ import com.payment.service.model.vo.SuccessResponseVO;
 import com.payment.service.repository.PaymentServiceRepository;
 import com.payment.service.service.PaymentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -54,10 +56,23 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public SuccessResponseVO<List<PaymentResponseVO>> getAllPayments() {
-        List<PaymentEntity> paymentEntities = paymentServiceRepository.findAll();
+    public SuccessResponseVO<List<PaymentResponseVO>> getAllPayments(int page, int limit) {
+        if (page < 0) {
+            page = 0;
+        }
+        if (limit < 0) {
+            limit = 10;
+        }
+        PageRequest pageRequest = PageRequest.of(page, limit);
+        Page<PaymentEntity> paymentEntities = paymentServiceRepository.findAll(pageRequest);
+        List<PaymentEntity> finalPaymentEntities;
+        if (paymentEntities.hasContent()) {
+            finalPaymentEntities = paymentEntities.getContent();
+        } else {
+            return SuccessResponseVO.of( "Payments retrieved successfully", null, List.of());
+        }
         List<PaymentResponseVO> paymentResponseVOList = new ArrayList<>();
-        for (PaymentEntity entity : paymentEntities) {
+        for (PaymentEntity entity : finalPaymentEntities) {
             PaymentResponseVO paymentResponseVO = new PaymentResponseVO(
                     entity.getName(),
                     entity.getEmail(),
@@ -66,6 +81,7 @@ public class PaymentServiceImpl implements PaymentService {
             );
             paymentResponseVOList.add(paymentResponseVO);
         }
-        return SuccessResponseVO.of( "Payments retrieved successfully", null, paymentResponseVOList);
+        return SuccessResponseVO.of( "Payments retrieved successfully", paymentResponseVOList,
+                paymentEntities.getNumber(), paymentEntities.getTotalPages(), paymentEntities.getTotalElements());
     }
 }

@@ -6,14 +6,12 @@ import com.payment.service.model.dto.PaymentRequestDTO;
 import com.payment.service.model.vo.PaymentResponseVO;
 import com.payment.service.model.vo.SuccessResponseVO;
 import com.payment.service.service.PaymentService;
-import lombok.With;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -21,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -58,8 +57,8 @@ class PaymentServiceControllerTest {
         when(paymentService.processPayment(any(PaymentRequestDTO.class)))
                 .thenReturn(response);
         mockMvc.perform(post(CREATE_PAYMENT_URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDTO))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDTO))
                 .with(csrf())
         ).andExpect(status().isCreated());
     }
@@ -72,8 +71,8 @@ class PaymentServiceControllerTest {
                 .thenThrow(new RuntimeException("Invalid input"));
 
         mockMvc.perform(post(CREATE_PAYMENT_URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}")
                 .with(csrf())
         ).andExpect(status().isBadRequest());
     }
@@ -88,9 +87,9 @@ class PaymentServiceControllerTest {
         );
         SuccessResponseVO<List<PaymentResponseVO>> response =
                 SuccessResponseVO.of("Payments fetched successfully", null, payments);
-        when(paymentService.getAllPayments()).thenReturn(response);
+        when(paymentService.getAllPayments(anyInt(), anyInt())).thenReturn(response);
         mockMvc.perform(get(GET_ALL_PAYMENTS_URL)
-                        .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
                 .with(csrf())
         ).andExpect(status().isOk());
     }
@@ -99,10 +98,12 @@ class PaymentServiceControllerTest {
     @WithMockUser
     void getAllPaymentsFailureTest() throws Exception {
 
-        when(paymentService.getAllPayments())
+        when(paymentService.getAllPayments(anyInt(), anyInt()))
                 .thenThrow(new RuntimeException("Something went wrong"));
         mockMvc.perform(get(GET_ALL_PAYMENTS_URL)
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("page", "0")
+                        .param("limit", "10")
+                .contentType(MediaType.APPLICATION_JSON)
                 .with(csrf())
         ).andExpect(status().isInternalServerError());
     }
@@ -111,6 +112,42 @@ class PaymentServiceControllerTest {
     void getAllPaymentsWithoutAuthenticationTest() throws Exception {
         mockMvc.perform(get(GET_ALL_PAYMENTS_URL)
         ).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser
+    void processPaymentWithInvalidEmailTest() throws Exception {
+        PaymentRequestDTO paymentRequestDTO = createPaymentRequestDTO();
+        paymentRequestDTO.setEmail("invalid.com");
+
+        mockMvc.perform(post(CREATE_PAYMENT_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(paymentRequestDTO))
+                .with(csrf())).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser
+    void processPaymentWithInvalidMobileTest() throws Exception {
+        PaymentRequestDTO paymentRequestDTO = createPaymentRequestDTO();
+        paymentRequestDTO.setPhoneNumber("invalid");
+
+        mockMvc.perform(post(CREATE_PAYMENT_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(paymentRequestDTO))
+                .with(csrf())).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser
+    void processPaymentWithInvalidAmountTest() throws Exception {
+        PaymentRequestDTO paymentRequestDTO = createPaymentRequestDTO();
+        paymentRequestDTO.setAmount(0.0f);
+
+        mockMvc.perform(post(CREATE_PAYMENT_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(paymentRequestDTO))
+                .with(csrf())).andExpect(status().isBadRequest());
     }
 
     private PaymentRequestDTO createPaymentRequestDTO() {

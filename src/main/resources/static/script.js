@@ -22,6 +22,10 @@ window.login = async function () {
 };
 
 // ---------------- PAYMENTS PAGE ----------------
+let currentPage = 0;
+let limit = 5;
+let totalPages = 0;
+
 window.loadPayments = async function () {
     const token = localStorage.getItem("token");
 
@@ -30,9 +34,12 @@ window.loadPayments = async function () {
         return;
     }
 
-    const response = await fetch(API_BASE + "/get", {
-        headers: { "Authorization": "Bearer " + token }
-    });
+    const response = await fetch(
+        `${API_BASE}/get?page=${currentPage}&limit=${limit}`,
+        {
+            headers: { "Authorization": "Bearer " + token }
+        }
+    );
 
     const result = await response.json();
     const table = document.getElementById("paymentsTable");
@@ -48,6 +55,36 @@ window.loadPayments = async function () {
             </tr>
         `;
     });
+
+    currentPage = result.currentPage;
+    totalPages = result.totalPages;
+
+    document.getElementById("pageInfo").innerText =
+        `Page ${currentPage + 1} of ${totalPages}`;
+
+    updateButtons();
+};
+
+function updateButtons() {
+    document.querySelector("button[onclick='prevPage()']").disabled =
+        currentPage === 0;
+
+    document.querySelector("button[onclick='nextPage()']").disabled =
+        currentPage >= totalPages - 1;
+}
+
+window.nextPage = function () {
+    if (currentPage < totalPages - 1) {
+        currentPage++;
+        loadPayments();
+    }
+};
+
+window.prevPage = function () {
+    if (currentPage > 0) {
+        currentPage--;
+        loadPayments();
+    }
 };
 
 window.openPaymentForm = function () {
@@ -68,9 +105,14 @@ window.submitPayment = async function () {
         amount: parseFloat(document.getElementById("amount").value)
     };
 
+    const token = localStorage.getItem("token");
+
     const response = await fetch(API_BASE + "/payment", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        },
         body: JSON.stringify(payload)
     });
 

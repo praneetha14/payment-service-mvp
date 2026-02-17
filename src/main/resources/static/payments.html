@@ -23,6 +23,13 @@
     <tbody id="paymentsTable"></tbody>
 </table>
 
+<!-- Pagination Controls -->
+<div style="margin-top:20px;">
+    <button onclick="prevPage()">Previous</button>
+    <span id="pageInfo"></span>
+    <button onclick="nextPage()">Next</button>
+</div>
+
 <script src="script.js"></script>
 <script>
     loadPayments();

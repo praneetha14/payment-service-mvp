@@ -21,6 +21,8 @@ public abstract class AbstractTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    protected static final String ASSERTION_ERROR_MESSAGE = "Assertion must be true";
+
     @AfterEach
     public void cleanup() {
         jdbcTemplate.execute("SET REFERENTIAL_INTEGRITY FALSE");
